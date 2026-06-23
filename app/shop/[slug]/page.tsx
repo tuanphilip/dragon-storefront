@@ -21,7 +21,7 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProduct(params.slug)
   if (!product) notFound()
 
-  const price = product.variants?.[0]?.channelListings?.[0]?.price
+  const price = product.pricing?.priceRange?.start?.net
   const images = product.media || []
 
   // Parse description from EditorJS JSON

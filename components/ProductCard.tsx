@@ -2,8 +2,7 @@ import Link from 'next/link'
 import type { Product } from '@/lib/types'
 
 export default function ProductCard({ product }: { product: Product }) {
-  const listing = product.channelListings?.[0]
-  const price = product.variants?.[0]?.channelListings?.[0]?.price
+  const price = product.pricing?.priceRange?.start?.net
   const image = product.media?.[0]
 
   return (

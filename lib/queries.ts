@@ -18,15 +18,10 @@ const PRODUCTS_QUERY = `
             alt
             type
           }
-          channelListings {
-            channel { slug }
-            isPublished
-            isAvailableForPurchase
-            pricing {
-              priceRange {
-                start { net { amount } }
-                stop { net { amount } }
-              }
+          pricing {
+            priceRange {
+              start { net { amount currency } }
+              stop { net { amount currency } }
             }
           }
           category { id name slug }
@@ -38,9 +33,6 @@ const PRODUCTS_QUERY = `
             id
             name
             sku
-            channelListings {
-              price { amount currency }
-            }
           }
         }
       }
@@ -58,14 +50,10 @@ const PRODUCT_BY_SLUG = `
       seoTitle
       seoDescription
       media { id url alt type }
-      channelListings {
-        channel { slug }
-        isPublished
-        pricing {
-          priceRange {
-            start { net { amount } }
-            stop { net { amount } }
-          }
+      pricing {
+        priceRange {
+          start { net { amount currency } }
+          stop { net { amount currency } }
         }
       }
       category { id name slug }
@@ -77,9 +65,6 @@ const PRODUCT_BY_SLUG = `
         id
         name
         sku
-        channelListings {
-          price { amount currency }
-        }
       }
     }
   }
@@ -102,7 +87,7 @@ const CATEGORIES_QUERY = `
               }
             }
           }
-          products {
+          products(channel: "default-channel") {
             totalCount
           }
         }
@@ -130,18 +115,31 @@ const PAGES_QUERY = `
 
 export async function getProducts(): Promise<Product[]> {
   const data = await saleorQuery<{ products: { edges: { node: Product }[] } }>(PRODUCTS_QUERY)
-  return data.products.edges
-    .map(e => e.node)
-    .filter(p => p.channelListings?.some(l => l.isPublished))
+  const products = data.products.edges.map(e => e.node)
+  // Fix media URLs from internal localhost to public
+  return fixMediaUrls(products)
 }
 
 export async function getProduct(slug: string): Promise<Product | null> {
   try {
     const data = await saleorQuery<{ product: Product | null }>(PRODUCT_BY_SLUG, { slug })
-    return data.product
+    if (!data.product) return null
+    return fixMediaUrls([data.product])[0]
   } catch {
     return null
   }
+}
+
+/** Transform media URLs from internal localhost to public */
+function fixMediaUrls(products: Product[]): Product[] {
+  const baseUrl = 'https://dragon.cool.robosoft.site/saleor'
+  return products.map(p => ({
+    ...p,
+    media: p.media?.map(m => ({
+      ...m,
+      url: m.url.replace('http://localhost:8000', baseUrl),
+    })) || [],
+  }))
 }
 
 export async function getCategories(): Promise<Category[]> {

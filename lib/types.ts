@@ -11,7 +11,12 @@ export interface Product {
     name: string
     slug: string
   }
-  channelListings: ProductChannelListing[]
+  pricing?: {
+    priceRange?: {
+      start?: { net: { amount: number; currency: string } }
+      stop?: { net: { amount: number; currency: string } }
+    }
+  }
   variants: ProductVariant[]
   attributes: ProductAttribute[]
 }
@@ -23,29 +28,10 @@ export interface ProductMedia {
   type: string
 }
 
-export interface ProductChannelListing {
-  id: string
-  channel: { slug: string }
-  isPublished: boolean
-  isAvailableForPurchase: boolean
-  pricing?: {
-    priceRange?: {
-      start?: { net: { amount: number } }
-      stop?: { net: { amount: number } }
-    }
-  }
-}
-
 export interface ProductVariant {
   id: string
   name: string
   sku: string
-  pricing?: {
-    price?: { gross: { amount: number; currency: string } }
-  }
-  channelListings?: {
-    price: { amount: number; currency: string }
-  }[]
 }
 
 export interface ProductAttribute {
